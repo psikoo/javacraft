@@ -22,10 +22,10 @@ public class JavaCraft { // Defines main variables
   private static final int CRAFTED_STICK = 201;
   private static final int CRAFTED_IRON_INGOT = 202;
   // Ansi colors
-  private static final String ANSI_BROWN = "\u001B[33m";
+  private static final String ANSI_BROWN = "\u001B[33m"; // Brown and yellow have the same color code for some reason (there is no base ansi code for brown (that I know))
   private static final String ANSI_RESET = "\u001B[0m";
   private static final String ANSI_GREEN = "\u001B[32m";
-  private static final String ANSI_YELLOW = "\u001B[33m";
+  private static final String ANSI_YELLOW = "\u001B[33m"; // Brown and yellow have the same color code for some reason
   private static final String ANSI_CYAN = "\u001B[36m";
   private static final String ANSI_RED = "\u001B[31m";
   private static final String ANSI_PURPLE = "\u001B[35m";
@@ -433,15 +433,22 @@ public class JavaCraft { // Defines main variables
       }
     }
   }
-  // CONTINUE
+
   private static void clearScreen() { // Clears command line
     try {
+      // If the operating system is windows
       if (System.getProperty("os.name").contains("Windows")) {
+        // Run command "cmd /c cls"
         new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+      // If the operating system is macOS/Linux
       } else {
-        System.out.print("\033[H\033[2J");
+        // According to https://www.javatpoint.com/how-to-clear-screen-in-java:
+        // \033[H moves the cursor to the top left of the screen/console
+        // \033[2J clears the screen from the cursor to the end of the screen
+        System.out.print("\033[H\\033[2J");
         System.out.flush();
       }
+    // Catch and display any errors
     } catch (IOException | InterruptedException ex) {
       ex.printStackTrace();
     }
@@ -449,6 +456,7 @@ public class JavaCraft { // Defines main variables
 
   private static void lookAround() { // DEPRECATED // Prints the 3x3 area around the player
     System.out.println("You look around and see:");
+    // Gets the map values of the 3 x 3 area area around the player
     for (int y = Math.max(0, playerY - 1); y <= Math.min(playerY + 1, worldHeight - 1); y++) {
       for (int x = Math.max(0, playerX - 1); x <= Math.min(playerX + 1, worldWidth - 1); x++) {
         if (x == playerX && y == playerY) {
@@ -466,24 +474,28 @@ public class JavaCraft { // Defines main variables
 
   public static void movePlayer(String direction) { // Moves the player depending on the input
     switch (direction.toUpperCase()) {
+      // Checks player can move up and moves 1 tile up
       case "W":
       case "UP":
         if (playerY > 0) {
           playerY--;
         }
         break;
+      // Checks player can move down and moves 1 tile down
       case "S":
       case "DOWN":
         if (playerY < worldHeight - 1) {
           playerY++;
         }
         break;
+      // Checks player can move left and moves 1 tile left
       case "A":
       case "LEFT":
         if (playerX > 0) {
           playerX--;
         }
         break;
+      // Checks player can move right and moves 1 tile right
       case "D":
       case "RIGHT":
         if (playerX < worldWidth - 1) {
@@ -496,11 +508,16 @@ public class JavaCraft { // Defines main variables
   }
 
   public static void mineBlock() { // Mines (replace the block with air and add the block to the inventory) the block where the player is standing
+    // Gets the block in the player position
     int blockType = world[playerX][playerY];
+    // If the blockType is not air
     if (blockType != AIR) {
+      // Add one of the mined block to the inventory
       inventory.add(blockType);
+      // Replace block with air
       world[playerX][playerY] = AIR;
       System.out.println("Mined " + getBlockName(blockType) + ".");
+    // If blockType is air
     } else {
       System.out.println("No block to mine here.");
     }
@@ -509,25 +526,37 @@ public class JavaCraft { // Defines main variables
   }
 
   public static void placeBlock(int blockType) { // Replaces the block on the players position by the block ID provided
+    // If the block ID is between 0 and 7 (inclusive)
     if (blockType >= 0 && blockType <= 7) {
+      // If the block ID is less or equal to 4
       if (blockType <= 4) {
+        // If the inventory array contains the specified ID
         if (inventory.contains(blockType)) {
+          // Removes the block from inventory
           inventory.remove(Integer.valueOf(blockType));
+          // Replaces the block in the players position with the placed block
           world[playerX][playerY] = blockType;
           System.out.println("Placed " + getBlockName(blockType) + " at your position.");
+        // If the inventory array does not contains the specified ID
         } else {
           System.out.println("You don't have " + getBlockName(blockType) + " in your inventory.");
         }
+      // If the block ID is between 5 and 7 (inclusive)
       } else {
         int craftedItem = getCraftedItemFromBlockType(blockType);
+        // If the craftedItems array contains the specified ID
         if (craftedItems.contains(craftedItem)) {
+          // Removes the crafted item from craftedItems
           craftedItems.remove(Integer.valueOf(craftedItem));
+          // Replaces the block in the players position with the placed crafted item
           world[playerX][playerY] = blockType;
           System.out.println("Placed " + getCraftedItemName(craftedItem) + " at your position.");
+        // If the craftedItems array does not contains the specified ID
         } else {
           System.out.println("You don't have " + getCraftedItemName(craftedItem) + " in your crafted items.");
         }
       }
+    // If the block ID is less than 0 or more than 7
     } else {
       System.out.println("Invalid block number. Please enter a valid block number.");
       System.out.println(BLOCK_NUMBERS_INFO);
@@ -536,7 +565,7 @@ public class JavaCraft { // Defines main variables
     waitForEnter();
   }
 
-  private static int getBlockTypeFromCraftedItem(int craftedItem) {
+  private static int getBlockTypeFromCraftedItem(int craftedItem) { //UNUSED see getCraftedItemFromBlockType()
     switch (craftedItem) {
       case CRAFTED_WOODEN_PLANKS:
         return 5;
@@ -549,14 +578,18 @@ public class JavaCraft { // Defines main variables
     }
   }
 
-  private static int getCraftedItemFromBlockType(int blockType) {
+  private static int getCraftedItemFromBlockType(int blockType) { //Transforms the given blockType to a crafted item name
     switch (blockType) {
+      // Wooden planks
       case 5:
         return CRAFTED_WOODEN_PLANKS;
+      // Sticks
       case 6:
         return CRAFTED_STICK;
+      // Iron ingot
       case 7:
         return CRAFTED_IRON_INGOT;
+      // Default
       default:
         return -1;
     }
@@ -573,12 +606,15 @@ public class JavaCraft { // Defines main variables
   public static void craftItem(int recipe) { // Crafts (removes specific items and gives a different item) specified recipe
     switch (recipe) {
       case 1:
+        // Crafts wooden planks
         craftWoodenPlanks();
         break;
       case 2:
+        // Crafts sticks
         craftStick();
         break;
       case 3:
+        // Crafts iron ingots
         craftIronIngot();
         break;
       default:
@@ -588,45 +624,57 @@ public class JavaCraft { // Defines main variables
     waitForEnter();
   }
 
-  public static void craftWoodenPlanks() {
+  public static void craftWoodenPlanks() { // Crafts wooden planks
+    // If inventory has required materials (2x wood)
     if (inventoryContains(WOOD, 2)) {
+      // Removes materials and adds the crafted item
       removeItemsFromInventory(WOOD, 2);
       addCraftedItem(CRAFTED_WOODEN_PLANKS);
       System.out.println("Crafted Wooden Planks.");
+    // If inventory does not have required materials (2x wood)
     } else {
       System.out.println("Insufficient resources to craft Wooden Planks.");
     }
   }
 
-  public static void craftStick() {
+  public static void craftStick() { // Crafts sticks
+    // If inventory has required materials (1x wood)
     if (inventoryContains(WOOD)) {
+      // Removes materials and adds the crafted item
       removeItemsFromInventory(WOOD, 1);
       addCraftedItem(CRAFTED_STICK);
       System.out.println("Crafted Stick.");
+    // If inventory does not have required materials (1x wood)
     } else {
       System.out.println("Insufficient resources to craft Stick.");
     }
   }
 
-  public static void craftIronIngot() {
+  public static void craftIronIngot() { // Crafts iron ingots
+    // If inventory has required materials (3x iron ore)
     if (inventoryContains(IRON_ORE, 3)) {
+      // Removes materials and adds the crafted item
       removeItemsFromInventory(IRON_ORE, 3);
       addCraftedItem(CRAFTED_IRON_INGOT);
       System.out.println("Crafted Iron Ingot.");
+    // If inventory does not have required materials (3x iron ore)
     } else {
       System.out.println("Insufficient resources to craft Iron Ingot.");
     }
   }
 
-  public static boolean inventoryContains(int item) {
+  public static boolean inventoryContains(int item) { // Checks if the inventory array contains the specified item
     return inventory.contains(item);
   }
 
-  public static boolean inventoryContains(int item, int count) {
+  public static boolean inventoryContains(int item, int count) { // Checks if the inventory array contains the specified item quantity
     int itemCount = 0;
+    // Loops though all the inventory
     for (int i : inventory) {
+      // If the current item is the one looked for
       if (i == item) {
         itemCount++;
+        // If there amount of items found is equal to the amount specified
         if (itemCount == count) {
           return true;
         }
@@ -635,14 +683,18 @@ public class JavaCraft { // Defines main variables
     return false;
   }
 
-  public static void removeItemsFromInventory(int item, int count) {
+  public static void removeItemsFromInventory(int item, int count) { // Removes the specified item quantity from inventory array
     int removedCount = 0;
+    // Loops though all the inventory
     Iterator<Integer> iterator = inventory.iterator();
     while (iterator.hasNext()) {
+      // If the current item is the one looked for
       int i = iterator.next();
       if (i == item) {
+        // Remove the item from the inventory array
         iterator.remove();
         removedCount++;
+        // If there amount of items removed is equal to the amount specified
         if (removedCount == count) {
           break;
         }
@@ -650,35 +702,44 @@ public class JavaCraft { // Defines main variables
     }
   }
 
-  public static void addCraftedItem(int craftedItem) {
+  public static void addCraftedItem(int craftedItem) { // Adds the specified craftedItem to the craftedItems array
+    // If the craftedItems array does not exit it creates it
     if (craftedItems == null) {
       craftedItems = new ArrayList<>();
     }
+    // Adds the item
     craftedItems.add(craftedItem);
   }
 
   public static void interactWithWorld() { // Collects one of the the block in the players position without removing the block
+    // Gets the block where the player is located
     int blockType = world[playerX][playerY];
     switch (blockType) {
+      // Interaction with wood
       case WOOD:
         System.out.println("You gather wood from the tree.");
         inventory.add(WOOD);
         break;
+      // Interaction with leaves
       case LEAVES:
         System.out.println("You gather leaves from the tree.");
         inventory.add(LEAVES);
         break;
+      // Interaction with stone
       case STONE:
         System.out.println("You gather stones from the ground.");
         inventory.add(STONE);
         break;
+      // Interaction with iron ore
       case IRON_ORE:
         System.out.println("You mine iron ore from the ground.");
         inventory.add(IRON_ORE);
         break;
+      // Interaction with air
       case AIR:
         System.out.println("Nothing to interact with here.");
         break;
+      // Default interaction
       default:
         System.out.println("Unrecognized block. Cannot interact.");
     }
@@ -707,7 +768,7 @@ public class JavaCraft { // Defines main variables
   }
 
 
-    public static void loadGame(String fileName) { // Deserialize game state data from a file and loads it into the game
+  public static void loadGame(String fileName) { // Deserialize game state data from a file and loads it into the game
     // Implementation for loading the game state from a file goes here
     try (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(fileName))) {
       // Deserialize game state data from the file and load it into the program
@@ -728,24 +789,30 @@ public class JavaCraft { // Defines main variables
     waitForEnter();
   }
 
-  private static String getBlockName(int blockType) {
+  private static String getBlockName(int blockType) { // Transforms blockType to block name
     switch (blockType) {
+      // Air
       case AIR:
         return "Empty Block";
+      // Wood
       case WOOD:
         return "Wood";
+      // Leaves
       case LEAVES:
         return "Leaves";
+      // Stone
       case STONE:
         return "Stone";
+      // Iron ore
       case IRON_ORE:
         return "Iron Ore";
+      // Default
       default:
         return "Unknown";
     }
   }
 
-  public static void displayLegend() {
+  public static void displayLegend() { // Displays the legend on the command line
     System.out.println(ANSI_BLUE + "Legend:");
     System.out.println(ANSI_WHITE + "-- - Empty block");
     System.out.println(ANSI_RED + "\u2592\u2592 - Wood block");
@@ -755,16 +822,20 @@ public class JavaCraft { // Defines main variables
     System.out.println(ANSI_BLUE + "P - Player" + ANSI_RESET);
   }
 
-  public static void displayInventory() {
+  public static void displayInventory() { // Displays the inventory on the command line
     System.out.println("Inventory:");
+    // If the inventory is empty
     if (inventory.isEmpty()) {
       System.out.println(ANSI_YELLOW + "Empty" + ANSI_RESET);
+    // If the inventory is not empty
     } else {
       int[] blockCounts = new int[5];
+      // Loop through the inventory and counts how many of each block there are
       for (int i = 0; i < inventory.size(); i++) {
         int block = inventory.get(i);
         blockCounts[block]++;
       }
+      // Loop and display all blocks in the inventory and their quantity
       for (int blockType = 1; blockType < blockCounts.length; blockType++) {
         int occurrences = blockCounts[blockType];
         if (occurrences > 0) {
@@ -773,9 +844,12 @@ public class JavaCraft { // Defines main variables
       }
     }
     System.out.println("Crafted Items:");
+    // If there are no crafted items
     if (craftedItems == null || craftedItems.isEmpty()) {
       System.out.println(ANSI_YELLOW + "None" + ANSI_RESET);
+    // If there are crafted items
     } else {
+      // Loop and display all crafted items
       for (int item : craftedItems) {
         System.out.print(getCraftedItemColor(item) + getCraftedItemName(item) + ", " + ANSI_RESET);
       }
@@ -784,7 +858,7 @@ public class JavaCraft { // Defines main variables
     System.out.println();
   }
 
-  private static String getBlockColor(int blockType) {
+  private static String getBlockColor(int blockType) { //UNUSED see getBlockSymbol()
     switch (blockType) {
       case AIR:
         return "";
@@ -801,26 +875,30 @@ public class JavaCraft { // Defines main variables
     }
   }
 
-  private static void waitForEnter() {
+  private static void waitForEnter() { // Waits for player to press enter
     System.out.println("Press Enter to continue...");
     Scanner scanner = new Scanner(System.in);
     scanner.nextLine();
   }
 
-  private static String getCraftedItemName(int craftedItem) {
+  private static String getCraftedItemName(int craftedItem) { // Transform craftedItem to crafted item name
     switch (craftedItem) {
+      // Wooden planks
       case CRAFTED_WOODEN_PLANKS:
         return "Wooden Planks";
+      // Sticks
       case CRAFTED_STICK:
         return "Stick";
+      // Iron ingot
       case CRAFTED_IRON_INGOT:
         return "Iron Ingot";
+      // Default
       default:
         return "Unknown";
     }
   }
 
-  private static String getCraftedItemColor(int craftedItem) {
+  private static String getCraftedItemColor(int craftedItem) { // NONFUNCTIONAL // Gets the color for the given crafted item
     switch (craftedItem) {
       case CRAFTED_WOODEN_PLANKS:
       case CRAFTED_STICK:
