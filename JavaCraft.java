@@ -434,7 +434,7 @@ public class JavaCraft { // Defines main variables
     }
   }
 
-  private static void clearScreen() { // Clears command line
+  private static void clearScreen() { // Clears the command line
     try {
       // If the operating system is windows
       if (System.getProperty("os.name").contains("Windows")) {
